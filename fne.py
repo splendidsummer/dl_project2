@@ -100,3 +100,4 @@ def full_network_embedding(model, image_paths, batch_size, target_layer_names, i
     return features, stats
 
 
+

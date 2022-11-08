@@ -19,6 +19,7 @@ if __name__ == '__main__':
                           'block5_conv2',
                           'block5_conv3', 'fc1', 'fc2']
 
+
     # Define data splits
     # Train set
     train_path = '/gpfs/projects/nct00/nct00038/mit67/train/'
@@ -78,3 +79,6 @@ if __name__ == '__main__':
     # Print results
     print(classification_report(test_labels, predicted_labels))
     print(confusion_matrix(test_labels, predicted_labels))
+
+
+tf.keras.layers.Conv2D
