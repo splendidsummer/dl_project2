@@ -7,27 +7,27 @@ mainly including:
     1.
 """
 
-PROJECT_NAME = 'Report_trails'
+BASE_DIR = './data/'
+RAW_DATA_DIR = './data/indoorCVPR_09/Images/'
+PROJECT_NAME = 'Transfer_Learning'
 TEAM_NAME = 'unicorn_upc_dl'
-train_folder = './data/train'
-val_folder = './data/test'
-test_folder = './data/val'
+TRAIN_FOLDER = './data/train/'
+# val_folder = './data/test'
+TEST_FOLDER = './data/test/'
 seed = 168
 img_height, img_width, n_channels = 256, 256, 3
 
 augment_config = {
     'augmentation': False,
     'random_ratio': 0.2,
-    'img_resize': 200,
-    'img_crop': 0.2,
+    'img_resize': 256,
+    # 'img_crop': 0.2,
+    'img_crop_size': 256,
     'img_factor': 0.2,
     'convert_gray': True
 }
 
 input_shape = (img_height, img_width, n_channels)
-
-data_columns = ['Image file', 'Medium', 'Museum', 'Museum-based instance ID', 'Subset',
-                'Width', 'Height', 'Product size', 'Aspect ratio']
 
 data_classes = ['Oil on canvas', 'Graphite', 'Glass', 'Limestone', 'Bronze',
                 'Ceramic', 'Polychromed wood', 'Faience', 'Wood', 'Gold', 'Marble',
@@ -37,13 +37,13 @@ data_classes = ['Oil on canvas', 'Graphite', 'Glass', 'Limestone', 'Bronze',
                 'Wood engraving', 'Hand-colored engraving', 'Clay',
                 'Hand-colored etching', 'Albumen photograph']
 
-# initializer = tf.keras.initializers.LecunNormal()
+num_classes = len(data_classes)
 
 wandb_config = {
     # "project_name": "CRB",
     "architecture": 'CONV',
     "epochs": 50,
-    "batch_size": 128,
+    "batch_size": 16,
     'weight_decay': 0,
     'drop_rate': 0.2,
     # "learning_rate": [0.00001, 0.0001, 0.001, 0.01, 0.1],
@@ -78,23 +78,5 @@ sweep_configuration = {
         'initialization': {'values': ['he_normal', 'glorot_uniform']}
      }
 }
-
-sweep_configuration = {
-    'method': 'grid',
-    'name': 'sweep',
-    'metric': {
-        'goal': 'maximize',
-        'name': 'val_acc'},
-    'parameters': {
-        'batch_size': {'values': [32, 64, 128, 256]},
-        'epochs': {'values': [35]},
-        'weight_decay': {'values': [0.0001]},
-        'learning_rate': {'values': [0.001]},
-        'activation': {'values': ['gelu']},
-        'initialization': {'values': ['he_normal']},
-        'optimizer': {'values': ['adam']}
-     }
-}
-
 
 

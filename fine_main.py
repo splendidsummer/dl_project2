@@ -80,5 +80,3 @@ if __name__ == '__main__':
     print(classification_report(test_labels, predicted_labels))
     print(confusion_matrix(test_labels, predicted_labels))
 
-
-tf.keras.layers.Conv2D
