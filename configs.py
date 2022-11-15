@@ -1,6 +1,9 @@
 import tensorflow as tf
 import random
 
+import efficientnet_config
+import resnet_config
+
 """
 Setting basic configuration for this project
 mainly including:
@@ -9,10 +12,10 @@ mainly including:
 
 BASE_DIR = './data/'
 RAW_DATA_DIR = './data/indoorCVPR_09/Images/'
-PROJECT_NAME = 'Transfer_Learning'
+PROJECT_NAME = 'Transfer_Learning_MAME'
 TEAM_NAME = 'unicorn_upc_dl'
 TRAIN_FOLDER = './data/train/'
-# val_folder = './data/test'
+VAL_FOLDER = './data/val'
 TEST_FOLDER = './data/test/'
 seed = 168
 img_height, img_width, n_channels = 256, 256, 3
@@ -37,13 +40,37 @@ data_classes = ['Oil on canvas', 'Graphite', 'Glass', 'Limestone', 'Bronze',
                 'Wood engraving', 'Hand-colored engraving', 'Clay',
                 'Hand-colored etching', 'Albumen photograph']
 
+
+resnet_layer_names = resnet_config.layer_names
+resnet_target_layers = resnet_config.target_layers
+
+efficientnetb7_layer_names = efficientnet_config.b7_layer_names
+efficientnetb7_target_layer = efficientnet_config.target_layers
+
+# efficientnetb6_layer_names = efficientnet_config.b6_layer_names
+# efficientnetb6_target_layers =
+
+# Should we set layernorm params to be trainable
+# unfreeze_layer_names = ['encoderblock_11']  # ViT-B16
+unfreeze_layer_names = ['encoderblock_11', 'encoderblock_10']
+# unfreeze_layer_names = ['encoderblock_23']
+# unfreeze_layer_names = ['encoderblock_22', 'encoderblock_23']
+# unfreeze_layer_names = ['encoderblock_21', 'encoderblock_22' ,'encoderblock_23']
+# unfreeze_layer_names = ['encoderblock_20', 'encoderblock_21', 'encoderblock_22' ,'encoderblock_23']
+
+resnet_extracted_layer_names = []
+efficient_extracted_layer_names = []
+
 num_classes = len(data_classes)
 
 wandb_config = {
     # "project_name": "CRB",
-    "architecture": 'CONV',
-    "epochs": 50,
-    "batch_size": 16,
+    "architecture": 'resnet',
+    'unfreeze': 'last_stage',  # last_block
+    "epochs": 20,
+    "first_stage_epochs": 5,
+    "finetune_epochs": 5,
+    "batch_size": 32,
     'weight_decay': 0,
     'drop_rate': 0.2,
     # "learning_rate": [0.00001, 0.0001, 0.001, 0.01, 0.1],
@@ -78,5 +105,33 @@ sweep_configuration = {
         'initialization': {'values': ['he_normal', 'glorot_uniform']}
      }
 }
+
+if wandb_config['architecture'] == 'resnet50' and wandb_config['unfreeze'] == 'last_stage':
+    unfreeze_layer_names = resnet_config.last_stage_layers
+    unfreeze_index = resnet_config.last_stage_index
+elif wandb_config['architecture'] == 'resnet50' and wandb_config['unfreeze'] == 'last_2stage':
+    unfreeze_layer_names = resnet_config.last_2stage_layers
+    unfreeze_index = resnet_config.last_2stage_index
+elif wandb_config['architecture'] == 'resnet50' and wandb_config['unfreeze'] == 'last_3stage':
+    unfreeze_layer_names = resnet_config.last_3stage_layers
+    unfreeze_index = resnet_config.last_3stage_index
+elif wandb_config['architecture'] == 'resnet50' and wandb_config['unfreeze'] == 'last_4stage':
+    unfreeze_layer_names = resnet_config.last_4stage_layers
+    unfreeze_index = resnet_config.last_4stage_index
+elif wandb_config['architecture'] == 'resnet50' and wandb_config['unfreeze'] == 'last_block':
+    unfreeze_layer_names = resnet_config.last_block_layers
+    unfreeze_index = resnet_config.last_block_index
+elif wandb_config['architecture'] == 'efficientnetb7' and wandb_config['unfreeze'] == 'last_stage':
+    unfreeze_layer_names = efficientnet_config.last_stage_layers
+    unfreeze_index = efficientnet_config.last_stage_index
+
+else:
+    unfreeze_layer_names = efficientnet_config.last_block_layers
+    unfreeze_index = efficientnet_config.last_block_index
+
+
+
+
+
 
 

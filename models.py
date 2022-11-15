@@ -39,47 +39,53 @@ data_augmentation = Sequential([
   ]
 )
 
-vgg19 = keras.applications.vgg19.VGG19(
-    include_top=False,
-    weights="imagenet",
-    input_shape=configs.input_shape,
-)
-
-resnet50 = keras.applications.resnet.ResNet50(
-    include_top=False,
-    weights="imagenet",
-    input_shape=configs.input_shape,
-)
-
-
-efficientnet_b7 = tf.keras.applications.efficientnet.EfficientNetB7(
-    include_top=False,
-    weights="imagenet",
-    input_shape=configs.input_shape,
-)
-
-efficientnet_b0 = keras.applications.efficientnet.EfficientNetB0(
-    include_top=False,
-    weights="imagenet",
-    input_shape=configs.input_shape,
-)
-
 
 def build_finetune_model(base_model):
-    preprocess_inputs = keras.applications.resnet.preprocess_input
+    base_model.trainable = False
+    preprocess_inputs = keras.applications.resnet.preprocess_input  # [-1, 1]
     # rescale = Rescaling(1/127.5, offset=-1)
     # base_model.trainable = False
     global_average_layer = GlobalAveragePooling2D()
     prediction_layer = Dense(configs.num_classes, activation='softmax')
     inputs = keras.Input(shape=configs.input_shape)
-    out = data_augmentation(inputs)
-    out = preprocess_inputs(out)
-    out = base_model(out)
+    # out = data_augmentation(inputs)
+    out = preprocess_inputs(inputs)
+    out = base_model(out, training=False)
     out = global_average_layer(out)
     out = prediction_layer(out)
 
     model = Model(inputs, out)
 
+    return model
+
+
+def build_resnet50():
+    resnet50 = keras.applications.resnet.ResNet50(
+        include_top=False,
+        weights="imagenet",
+        input_shape=configs.input_shape,
+    )
+    model = build_finetune_model(resnet50)
+    return model
+
+
+def build_efficientnetb7():
+    efficientnet_b7 = tf.keras.applications.efficientnet.EfficientNetB7(
+        include_top=False,
+        weights="imagenet",
+        input_shape=configs.input_shape,
+    )
+    model = build_finetune_model(efficientnet_b7)
+    return model
+
+
+def build_efficientnetb0():
+    efficientnet_b0 = keras.applications.efficientnet.EfficientNetB0(
+        include_top=False,
+        weights="imagenet",
+        input_shape=configs.input_shape,
+    )
+    model = build_finetune_model(efficientnet_b0)
     return model
 
 
@@ -98,8 +104,8 @@ def build_extractor(base_model, target_layer_names, backbone_type='resnet'):
         preprocess_inputs = None  # Adding later
 
     inputs = keras.Input(shape=configs.input_shape)
-    outs = data_augmentation(inputs)
-    outs = preprocess_inputs(outs)
+    # outs = data_augmentation(inputs)
+    outs = preprocess_inputs(inputs)
     outs = feature_extractor(outs)
     global_average_layer = GlobalAveragePooling2D()
 
@@ -119,12 +125,32 @@ def build_extractor(base_model, target_layer_names, backbone_type='resnet'):
     return model
 
 
+def build_extract_finetune_model(base_model, layer_names):
+    preprocess_inputs = keras.applications.resnet.preprocess_input  # [-1, 1]
+    # rescale = Rescaling(1/127.5, offset=-1)
+    # base_model.trainable = False
+    global_average_layer = GlobalAveragePooling2D()
+    prediction_layer = Dense(configs.num_classes, activation='softmax')
+    inputs = keras.Input(shape=configs.input_shape)
+    # out = data_augmentation(inputs)
+    out = preprocess_inputs(inputs)
+    out = base_model(out)
+    out = global_average_layer(out)
+    out = prediction_layer(out)
 
+    model = Model(inputs, out)
 
+    return model
 
 
 if __name__ == '__main__':
-    model = build_finetune_model()
-    print(111)
-    print(222)
+    # model = tf.keras.applications.resnet.ResNet50(include_top=True, weights="imagenet")
+    # model.summary()
+    # layer_names = [layer.name for layer in model.layers]
+    # print(layer_names)
+    model = tf.keras.applications.resnet.ResNet50(include_top=False, weights="imagenet")
+    layer_names = [layer.name for layer in model.layers]
+    print(layer_names.index('conv2_block1_1_conv'))
+    # print(layer_names.index('conv5_block3_1_conv'))
+    # print(111)
 
