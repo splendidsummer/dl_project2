@@ -68,7 +68,7 @@ test_dataset = X_val.prefetch(buffer_size=AUTOTUNE)
 
 print('building model')
 # Selecting a model from meodel library
-model = build_efficientnetb7()
+model = build_resnet_extract_finetune()
 
 print('Trainable variables in model: ', len(model.trainable_variables))
 

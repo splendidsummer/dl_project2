@@ -17,6 +17,8 @@ from tensorflow import keras
 from keras import Sequential, Model
 from keras import layers
 from customized import *
+import resnet_config
+import efficientnet_config
 
 from keras.layers import Dense, Activation, Add, Conv2D, MaxPooling2D, Flatten, Dropout, \
     BatchNormalization, UpSampling2D, GlobalAveragePooling2D, Concatenate, Rescaling
@@ -89,7 +91,7 @@ def build_efficientnetb0():
     return model
 
 
-def build_extractor(base_model, target_layer_names, backbone_type='resnet'):
+def build_extractor(base_model, target_layer_names, backbone_type='resnet'):  #
 
     feature_extractor = tf.keras.Model(
         inputs=base_model.inputs,
@@ -102,6 +104,26 @@ def build_extractor(base_model, target_layer_names, backbone_type='resnet'):
         preprocess_inputs = keras.applications.efficientnet.preprocess_input
     elif backbone_type == 'visiontransformer':
         preprocess_inputs = None  # Adding later
+    else:
+        preprocess_inputs = keras.applications.resnet.preprocess_input
+
+    return feature_extractor, preprocess_inputs
+
+
+def build_extract_finetune(base_model, target_layer_names, backbone_type='resnet'):
+    feature_extractor = tf.keras.Model(
+        inputs=base_model.inputs,
+        outputs=[layer.output for layer in base_model.layers if layer.name in target_layer_names],
+    )
+
+    if backbone_type == 'resnet':
+        preprocess_inputs = keras.applications.resnet.preprocess_input
+    elif backbone_type == 'efficientnet':
+        preprocess_inputs = keras.applications.efficientnet.preprocess_input
+    elif backbone_type == 'visiontransformer':
+        preprocess_inputs = None  # Adding later
+    else:
+        preprocess_inputs = keras.applications.resnet.preprocess_input
 
     inputs = keras.Input(shape=configs.input_shape)
     # outs = data_augmentation(inputs)
@@ -113,7 +135,7 @@ def build_extractor(base_model, target_layer_names, backbone_type='resnet'):
     for output in outs:
         output = global_average_layer(output)
         if outputs is not None:
-            outputs = Concatenate()([outputs, output], axis=-1)
+            outputs = Concatenate()([outputs, output])
         else:
             outputs = output
 
@@ -121,25 +143,66 @@ def build_extractor(base_model, target_layer_names, backbone_type='resnet'):
     out = prediction_layer(outputs)
 
     model = Model(inputs, out)
-
     return model
 
 
-def build_extract_finetune_model(base_model, layer_names):
-    preprocess_inputs = keras.applications.resnet.preprocess_input  # [-1, 1]
-    # rescale = Rescaling(1/127.5, offset=-1)
-    # base_model.trainable = False
-    global_average_layer = GlobalAveragePooling2D()
-    prediction_layer = Dense(configs.num_classes, activation='softmax')
+def build_resnet_extractor():
+    base_model = keras.applications.resnet.ResNet50(
+        include_top=False,
+        weights="imagenet",
+        input_shape=configs.input_shape,
+    )
+
+    layer_names = resnet_config.target_layers
+
+    feature_extractor, preprocess_inputs = build_extractor(base_model, layer_names, backbone_type='resnet')
     inputs = keras.Input(shape=configs.input_shape)
-    # out = data_augmentation(inputs)
-    out = preprocess_inputs(inputs)
-    out = base_model(out)
-    out = global_average_layer(out)
-    out = prediction_layer(out)
+    inputs = preprocess_inputs(inputs)
+    outs = feature_extractor(inputs)
+    feature_extractor = tf.keras.Model(inputs=inputs, outputs=outs)
 
-    model = Model(inputs, out)
+    return feature_extractor
 
+
+def build_efficientnetb7_extractor():
+    base_model = keras.applications.efficientnet.EfficientNetB7(
+        include_top=False,
+        weights="imagenet",
+        input_shape=configs.input_shape,
+    )
+
+    layer_names = efficientnet_config.target_layers
+
+    features_extractor, preprocess_inputs = build_extractor(base_model, layer_names, backbone_type='efficientnet')
+    inputs = keras.Input(shape=configs.input_shape)
+    inputs = preprocess_inputs(inputs)
+    outs = features_extractor(inputs)
+    features_extractor = tf.keras.Model(inputs=inputs, outputs=outs)
+    return features_extractor
+
+
+def build_resnet_extract_finetune():
+    base_model = keras.applications.resnet.ResNet50(
+        include_top=False,
+        weights="imagenet",
+        input_shape=configs.input_shape,
+    )
+
+    layer_names = resnet_config.target_layers
+
+    model = build_extract_finetune(base_model, layer_names, backbone_type='resnet')
+    return model
+
+
+def build_efficient_extract_finetune():
+    base_model = keras.applications.efficientnet.EfficientNetB7(
+        include_top=False,
+        weights="imagenet",
+        input_shape=configs.input_shape,
+    )
+
+    layer_names = efficientnet_config.target_layers
+    model = build_extract_finetune(base_model, layer_names, backbone_type='resnet')
     return model
 
 
@@ -148,9 +211,36 @@ if __name__ == '__main__':
     # model.summary()
     # layer_names = [layer.name for layer in model.layers]
     # print(layer_names)
-    model = tf.keras.applications.resnet.ResNet50(include_top=False, weights="imagenet")
-    layer_names = [layer.name for layer in model.layers]
-    print(layer_names.index('conv2_block1_1_conv'))
+    # model = tf.keras.applications.resnet.ResNet50(include_top=False, weights="imagenet")
+    # layer_names = [layer.name for layer in model.layers]
+    # print(layer_names.index('conv2_block1_1_conv'))
     # print(layer_names.index('conv5_block3_1_conv'))
     # print(111)
+
+    pretrain_model = tf.keras.applications.resnet.ResNet50(
+        include_top=False,
+        weights="imagenet",
+        input_shape=configs.input_shape,
+    )
+    img = tf.random.normal((4, 256, 256, 3))
+    # extractor, _ = build_extractor(pretrain_model, resnet_config.target_layers)
+
+    # out = extractor(img)
+
+    resnet_extractor = build_resnet_extractor()
+    resnet_outs = resnet_extractor(img)
+    efficient_extractor = build_efficientnetb7_extractor()
+    eff_outs = efficient_extractor(img)
+
+    model1 = build_resnet_extract_finetune()
+    classification1 = model1(img)
+    model2 = build_efficient_extract_finetune()
+    classification2 = model2(img)
+
+    print(1111)
+
+
+
+
+
 

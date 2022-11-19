@@ -68,8 +68,8 @@ wandb_config = {
     "architecture": 'resnet',
     'unfreeze': 'last_stage',  # last_block
     "epochs": 20,
-    "first_stage_epochs": 5,
-    "finetune_epochs": 5,
+    "first_stage_epochs": 1,
+    "finetune_epochs": 1,
     "batch_size": 32,
     'weight_decay': 0,
     'drop_rate': 0.2,

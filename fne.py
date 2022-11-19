@@ -1,6 +1,11 @@
 import numpy as np
 import tensorflow as tf
 import cv2
+import configs
+import pandas as pd
+import resnet_config
+
+base_dir = 'D:/UPC_Course3/DL/'
 
 
 def full_network_embedding(model, image_paths, batch_size, target_layer_names, input_reshape, stats=None):
@@ -52,6 +57,7 @@ def full_network_embedding(model, image_paths, batch_size, target_layer_names, i
         batch_images_path = image_paths[idx:idx + batch_size]
         img_batch = np.zeros((len(batch_images_path), *input_reshape, 3), dtype=np.float32)
         for i, img_path in enumerate(batch_images_path):
+            img_path = base_dir + img_path[2:]
             cv_img = cv2.imread(img_path)
             try:
                 cv_img_resize = cv2.resize(cv_img, input_reshape)
@@ -99,5 +105,25 @@ def full_network_embedding(model, image_paths, batch_size, target_layer_names, i
     # Return
     return features, stats
 
+
+if __name__ == '__main__':
+    pretrain_model = tf.keras.applications.resnet.ResNet50(
+        include_top=False,
+        weights="imagenet",
+        input_shape=configs.input_shape,
+    )
+    df = pd.read_csv('Organized_MAMe_dataset.csv')
+    img_paths = df.Organized_img_path[:16]
+
+    features, stats = full_network_embedding(
+                                model=pretrain_model,
+                                image_paths=img_paths,
+                                batch_size=4,
+                                target_layer_names=resnet_config.target_layers,
+                                input_reshape=configs.input_shape[:2],
+                                stats=None)
+
+
+    print(11111)
 
 
