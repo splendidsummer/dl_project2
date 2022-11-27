@@ -19,12 +19,12 @@ class RandomInvert(layers.Layer):
         return random_invert_img(x)
 
 
-class RandomGray(layers.Layer):
-    def __init__(self, p=configs.augment_config['random_ratio'], **kwargs):
-        super().__init__(**kwargs)
-        self.prob = p
-
-    def call(self, img):
-        if tf.random.uniform([]) < self.prob:
-            img = tf.image.rgb_to_grayscale(img)
-        return img
+# class RandomGray(layers.Layer):
+#     def __init__(self, p=configs.augment_config['random_ratio'], **kwargs):
+#         super().__init__(**kwargs)
+#         self.prob = p
+#
+#     def call(self, img):
+#         if tf.random.uniform([]) < self.prob:
+#             img = tf.image.rgb_to_grayscale(img)
+#         return img

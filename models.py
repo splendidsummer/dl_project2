@@ -23,31 +23,54 @@ import efficientnet_config
 from keras.layers import Dense, Activation, Add, Conv2D, MaxPooling2D, Flatten, Dropout, \
     BatchNormalization, UpSampling2D, GlobalAveragePooling2D, Concatenate, Rescaling
 
+#
+# data_augmentation = Sequential([
+#     layers.Resizing(configs.augment_config['img_resize'], configs.augment_config['img_resize']),
+#     layers.RandomCrop(configs.augment_config['img_crop_size'], configs.augment_config['img_crop_size']),
+#     layers.RandomFlip("horizontal"),
+#     layers.RandomFlip("vertical"),
+#     layers.RandomFlip("horizontal_and_vertical"),
+#     layers.RandomRotation(configs.augment_config['random_ratio']),
+#     layers.CenterCrop(configs.augment_config['img_crop_size'], configs.augment_config['img_crop_size']),
+#     layers.RandomTranslation(configs.augment_config['img_factor'], configs.augment_config['img_factor']),
+#     layers.RandomZoom(configs.augment_config['random_ratio']),
+#     # layers.RandomBrightness(configs.img_factor),
+#     layers.RandomContrast(configs.augment_config['img_factor']),
+#     layers.RandomTranslation(configs.augment_config['img_factor'], configs.augment_config['img_factor']),
+#     RandomGray(configs.augment_config['random_ratio']),
+#   ]
+# )
 
-data_augmentation = Sequential([
-    layers.Resizing(configs.augment_config['img_resize'], configs.augment_config['img_resize']),
-    layers.RandomCrop(configs.augment_config['img_crop_size'], configs.augment_config['img_crop_size']),
-    layers.RandomFlip("horizontal"),
-    layers.RandomFlip("vertical"),
-    layers.RandomFlip("horizontal_and_vertical"),
-    layers.RandomRotation(configs.augment_config['random_ratio']),
-    layers.CenterCrop(configs.augment_config['img_crop_size'], configs.augment_config['img_crop_size']),
-    layers.RandomTranslation(configs.augment_config['img_factor'], configs.augment_config['img_factor']),
-    layers.RandomZoom(configs.augment_config['random_ratio']),
-    # layers.RandomBrightness(configs.img_factor),
-    layers.RandomContrast(configs.augment_config['img_factor']),
-    layers.RandomTranslation(configs.augment_config['img_factor'], configs.augment_config['img_factor']),
-    RandomGray(configs.augment_config['random_ratio']),
-  ]
-)
 
-
-def build_finetune_model(base_model):
+def build_finetune_model(base_model, config):
     base_model.trainable = False
     preprocess_inputs = keras.applications.resnet.preprocess_input  # [-1, 1]
     # rescale = Rescaling(1/127.5, offset=-1)
     # base_model.trainable = False
     global_average_layer = GlobalAveragePooling2D()
+    drop_layer = Dropout(config.drop_rate)
+    prediction_layer = Dense(configs.num_classes, activation='softmax')
+    inputs = keras.Input(shape=configs.input_shape)
+    # out = data_augmentation(inputs)
+    out = preprocess_inputs(inputs)
+    out = base_model(out, training=False)
+    out = global_average_layer(out)
+    out = drop_layer(prediction_layer(out))
+
+    model = Model(inputs, out)
+
+    return model
+
+
+def build_finetune_dense_model(base_model):
+    base_model.trainable = False
+    preprocess_inputs = keras.applications.resnet.preprocess_input  # [-1, 1]
+    # rescale = Rescaling(1/127.5, offset=-1)
+    # base_model.trainable = False
+    global_average_layer = GlobalAveragePooling2D()
+    hidden_layer = Dense()
+    prediction_layer = Dense(configs.num_classes, activation='softmax')
+
     prediction_layer = Dense(configs.num_classes, activation='softmax')
     inputs = keras.Input(shape=configs.input_shape)
     # out = data_augmentation(inputs)
@@ -222,6 +245,8 @@ if __name__ == '__main__':
         weights="imagenet",
         input_shape=configs.input_shape,
     )
+
+    print(1111)
     img = tf.random.normal((4, 256, 256, 3))
     # extractor, _ = build_extractor(pretrain_model, resnet_config.target_layers)
 

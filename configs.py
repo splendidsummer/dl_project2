@@ -19,16 +19,16 @@ VAL_FOLDER = './data/val'
 TEST_FOLDER = './data/test/'
 seed = 168
 img_height, img_width, n_channels = 256, 256, 3
-
-augment_config = {
-    'augmentation': False,
-    'random_ratio': 0.2,
-    'img_resize': 256,
-    # 'img_crop': 0.2,
-    'img_crop_size': 256,
-    'img_factor': 0.2,
-    'convert_gray': True
-}
+#
+# augment_config = {
+#     'augmentation': False,
+#     'random_ratio': 0.2,
+#     'img_resize': 256,
+#     # 'img_crop': 0.2,
+#     'img_crop_size': 256,
+#     'img_factor': 0.2,
+#     'convert_gray': True
+# }
 
 input_shape = (img_height, img_width, n_channels)
 
@@ -65,13 +65,14 @@ num_classes = len(data_classes)
 
 wandb_config = {
     # "project_name": "CRB",
-    "architecture": 'resnet',
-    'unfreeze': 'last_stage',  # last_block
-    "epochs": 20,
-    "first_stage_epochs": 1,
-    "finetune_epochs": 1,
+    "architecture": 'resnet50',
+    'unfreeze': 'None',  # last_block
+    # "epochs": 20,
+    "freeze_epochs": 15,
+    'finetune_ratio': 1,
+    # "finetune_epochs": int(wandb.finetune_ratio * wandb.freeze_epochs),
     "batch_size": 32,
-    'weight_decay': 0,
+    'weight_decay': 0,  # 0.001, 0.0001
     'drop_rate': 0.2,
     # "learning_rate": [0.00001, 0.0001, 0.001, 0.01, 0.1],
     "learning_rate": 0.0001,
@@ -79,16 +80,18 @@ wandb_config = {
     "amsgrad": False,
     "momentum": 0.0,   # how to set this together with lr???
     "nesterov": False,
-    "activation": 'selu',  # 'selu', 'leaky_relu'(small leak:0.01, large leak:0.2), 'gelu',
+    "activation": 'relu',  # 'selu', 'leaky_relu'(small leak:0.01, large leak:0.2), 'gelu',
     "initialization": "he_normal",
     "optimizer": 'adam',
     # "dropout": random.uniform(0.01, 0.80),
-    "normalization": True,
-    "early_stopping": True,
-    "augment": False
+    # "normalization": True,
+    # "early_stopping": True,
+    # "augment": False,
+    "num_hidden": 512,
+    "augmentation": None,  # "random_crop", "random_ratation"
     }
 
-wandb_config.update(augment_config)
+# wandb_config.update(augment_config)
 #
 sweep_configuration = {
     'method': 'grid',
@@ -121,6 +124,9 @@ elif wandb_config['architecture'] == 'resnet50' and wandb_config['unfreeze'] == 
 elif wandb_config['architecture'] == 'resnet50' and wandb_config['unfreeze'] == 'last_block':
     unfreeze_layer_names = resnet_config.last_block_layers
     unfreeze_index = resnet_config.last_block_index
+elif wandb_config['architecture'] == 'resnet50' and wandb_config['unfreeze'] == 'None':
+    unfreeze_index = resnet_config.last_index
+    
 elif wandb_config['architecture'] == 'efficientnetb7' and wandb_config['unfreeze'] == 'last_stage':
     unfreeze_layer_names = efficientnet_config.last_stage_layers
     unfreeze_index = efficientnet_config.last_stage_index

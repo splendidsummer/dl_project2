@@ -23,13 +23,13 @@ wandb_dir = '/root/autodl-tmp/dl_project2/wandb_logs' if is_gpu else \
 
 # initialize wandb logging to your project
 wandb.init(
-    job_type='FineTune',
+    job_type='FineTune_Resnet',
     project=configs.PROJECT_NAME,
     dir=wandb_dir,
     entity=configs.TEAM_NAME,
     config=configs.wandb_config,
-    sync_tensorboard=True,
-    name='cnn6' + now,
+    # sync_tensorboard=True,
+    name='freeze_all_blocks' + now,
     notes='min_lr=0.00001',
     ####
 )
