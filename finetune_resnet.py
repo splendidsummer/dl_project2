@@ -1,6 +1,7 @@
 import tensorflow as tf
 from models import *
 import os, sys, time, tqdm, datetime
+import math
 import keras
 from keras import layers, optimizers
 from keras.optimizers import SGD, Adam
@@ -61,6 +62,8 @@ X_val = tf.keras.utils.image_dataset_from_directory(
     shuffle=False,
     seed=configs.seed,
 )
+n_steps = math.ceil(len(X_train) / batch_size) * 10  # here we set decay_epochs = 10
+n_steps_per_epoch = math.ceil(len(X_train) / batch_size)
 
 AUTOTUNE = tf.data.AUTOTUNE
 train_dataset = X_train.prefetch(buffer_size=AUTOTUNE)
@@ -72,11 +75,6 @@ model = build_resnet50()
 
 print('Trainable variables in model: ', len(model.trainable_variables))
 
-optimizer = Adam(  # do we need to change the epsilon??
-        lr=lr,
-        epsilon=config.epsilon,
-        amsgrad=config.amsgrad
-    )
 
 # Use early stopping
 early_callback = EarlyStopping(monitor='val_loss',
@@ -91,8 +89,29 @@ wandb_callback = WandbCallback(
                                 # log_gradients=True,
                               )
 
+reduce_lr_callback = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, min_lr=0.00001)
+
+"""
+需要edit不同的learning rate 
+"""
+# There are multiple choice for learning rate scheduler
+# Including ReduceLROnPlateau,
 # reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.00001)
-reduce_lr = ReduceLROnPlateau(min_lr=0.00001)
+
+lr_scheduler = None
+
+if config.lr_scheduler == 'exponential':
+    lr_scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
+    initial_learning_rate=0.001, decay_steps=n_steps*10, decay_rate=0.1)
+elif config.lr_scheduler == 'piecewise':
+    lr_scheduler = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
+    boundaries=[10. * n_steps_per_epoch, 20. * n_steps_per_epoch],
+    values=[0.001, 0.0005, 0.0001])
+
+if lr_scheduler is not None:
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr_scheduler)
+else:
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
 
 model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
               optimizer=optimizer, metrics=["accuracy"])
@@ -103,19 +122,21 @@ t0 = time.time()
 history = model.fit(X_train,
                     validation_data=X_val,
                     epochs=first_stage_epochs,
-                    callbacks=[reduce_lr],
-                    # callbacks=[early_callback, wandb_callback],
+                    # callbacks=[reduce_lr_callback],
+                    callbacks=[early_callback, wandb_callback],
+                    # callbacks = [wandb_callback],
                     # callbacks=[reduce_lr, wandb_callback],
                     )
 
 optimizers = [
     tf.keras.optimizers.Adam(learning_rate=lr),
-    tf.keras.optimizers.Adam(learning_rate=lr/10)
+    tf.kieras.optimizers.Adam(learning_rate=lr/10)
 ]
 optimizers_and_layers = [(optimizers[0], model.layers[:configs.unfreeze_index]),
                          (optimizers[1], model.layers[configs.unfreeze_index:])]
 
 optimizer = tfa.optimizers.MultiOptimizer(optimizers_and_layers)
+
 
 model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
               optimizer=optimizer, metrics=["accuracy"])

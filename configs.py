@@ -69,7 +69,7 @@ wandb_config = {
     'unfreeze': 'None',  # last_block
     # "epochs": 20,
     "freeze_epochs": 15,
-    'finetune_ratio': 1,
+    'finetune_ratio': 0,
     # "finetune_epochs": int(wandb.finetune_ratio * wandb.freeze_epochs),
     "batch_size": 32,
     'weight_decay': 0,  # 0.001, 0.0001
@@ -89,6 +89,7 @@ wandb_config = {
     # "augment": False,
     "num_hidden": 512,
     "augmentation": None,  # "random_crop", "random_ratation"
+    "lr_scheduler": "None"
     }
 
 # wandb_config.update(augment_config)
@@ -126,7 +127,7 @@ elif wandb_config['architecture'] == 'resnet50' and wandb_config['unfreeze'] == 
     unfreeze_index = resnet_config.last_block_index
 elif wandb_config['architecture'] == 'resnet50' and wandb_config['unfreeze'] == 'None':
     unfreeze_index = resnet_config.last_index
-    
+
 elif wandb_config['architecture'] == 'efficientnetb7' and wandb_config['unfreeze'] == 'last_stage':
     unfreeze_layer_names = efficientnet_config.last_stage_layers
     unfreeze_index = efficientnet_config.last_stage_index
