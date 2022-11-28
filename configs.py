@@ -18,7 +18,7 @@ TRAIN_FOLDER = './data/train/'
 VAL_FOLDER = './data/val'
 TEST_FOLDER = './data/test/'
 seed = 168
-img_height, img_width, n_channels = 256, 256, 3
+img_height, img_width, n_channels = 196, 196, 3
 #
 # augment_config = {
 #     'augmentation': False,
@@ -68,14 +68,14 @@ wandb_config = {
     "architecture": 'resnet50',
     'unfreeze': 'None',  # last_block
     # "epochs": 20,
-    "freeze_epochs": 15,
+    "freeze_epochs": 30,
     'finetune_ratio': 0,
     # "finetune_epochs": int(wandb.finetune_ratio * wandb.freeze_epochs),
     "batch_size": 32,
     'weight_decay': 0,  # 0.001, 0.0001
     'drop_rate': 0.2,
     # "learning_rate": [0.00001, 0.0001, 0.001, 0.01, 0.1],
-    "learning_rate": 0.0001,
+    "learning_rate": 0.001,
     "epsilon": 1e-7,
     "amsgrad": False,
     "momentum": 0.0,   # how to set this together with lr???
@@ -89,7 +89,7 @@ wandb_config = {
     # "augment": False,
     "num_hidden": 512,
     "augmentation": None,  # "random_crop", "random_ratation"
-    "lr_scheduler": "None"
+    "lr_scheduler": "None",
     }
 
 # wandb_config.update(augment_config)

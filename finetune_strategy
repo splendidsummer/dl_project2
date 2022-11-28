@@ -1,0 +1,2 @@
+1. Freeze all the layers of backbone, and only train the classification head.
+     1. LR: 0.001, 0.0001, 0.00001

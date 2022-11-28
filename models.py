@@ -84,13 +84,13 @@ def build_finetune_dense_model(base_model):
     return model
 
 
-def build_resnet50():
+def build_resnet50(config):
     resnet50 = keras.applications.resnet.ResNet50(
         include_top=False,
         weights="imagenet",
         input_shape=configs.input_shape,
     )
-    model = build_finetune_model(resnet50)
+    model = build_finetune_model(resnet50, config)
     return model
 
 
