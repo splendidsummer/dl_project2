@@ -12,23 +12,23 @@ mainly including:
 
 BASE_DIR = './data/'
 RAW_DATA_DIR = './data/indoorCVPR_09/Images/'
-PROJECT_NAME = 'Transfer_Learning_MAME'
+PROJECT_NAME = 'Transfer_Learning_MAME_freeze_3_blocks'
 TEAM_NAME = 'unicorn_upc_dl'
 TRAIN_FOLDER = './data/train/'
 VAL_FOLDER = './data/val'
 TEST_FOLDER = './data/test/'
 seed = 168
-img_height, img_width, n_channels = 196, 196, 3
-#
-# augment_config = {
-#     'augmentation': False,
-#     'random_ratio': 0.2,
-#     'img_resize': 256,
-#     # 'img_crop': 0.2,
-#     'img_crop_size': 256,
-#     'img_factor': 0.2,
-#     'convert_gray': True
-# }
+img_height, img_width, n_channels = 320, 320, 3
+
+augment_config = {
+    'augmentation': True,
+    'random_ratio': 0.2,
+    'img_resize': 256,
+    # 'img_crop': 0.2,
+    'img_crop_size': 256,
+    'img_factor': 0.2,
+    'convert_gray': True
+}
 
 input_shape = (img_height, img_width, n_channels)
 
@@ -66,10 +66,10 @@ num_classes = len(data_classes)
 wandb_config = {
     # "project_name": "CRB",
     "architecture": 'resnet50',
-    'unfreeze': 'None',  # last_block
+    'unfreeze': 'last_stage',  # last_block
     # "epochs": 20,
-    "freeze_epochs": 30,
-    'finetune_ratio': 0,
+    "freeze_epochs": 3,
+    'finetune_ratio': 2,
     # "finetune_epochs": int(wandb.finetune_ratio * wandb.freeze_epochs),
     "batch_size": 32,
     'weight_decay': 0,  # 0.001, 0.0001

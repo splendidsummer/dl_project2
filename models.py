@@ -62,23 +62,22 @@ def build_finetune_model(base_model, config):
     return model
 
 
-def build_finetune_dense_model(base_model):
+def build_finetune_dense_model(base_model, config):
     base_model.trainable = False
     preprocess_inputs = keras.applications.resnet.preprocess_input  # [-1, 1]
     # rescale = Rescaling(1/127.5, offset=-1)
     # base_model.trainable = False
     global_average_layer = GlobalAveragePooling2D()
-    hidden_layer = Dense()
-    prediction_layer = Dense(configs.num_classes, activation='softmax')
-
+    hidden_layer = Dense(config.num_hidden, config.activation)
+    drop_layer = Dropout(config.drop_rate)
     prediction_layer = Dense(configs.num_classes, activation='softmax')
     inputs = keras.Input(shape=configs.input_shape)
     # out = data_augmentation(inputs)
     out = preprocess_inputs(inputs)
     out = base_model(out, training=False)
     out = global_average_layer(out)
+    out = drop_layer(hidden_layer(out))
     out = prediction_layer(out)
-
     model = Model(inputs, out)
 
     return model
@@ -94,6 +93,16 @@ def build_resnet50(config):
     return model
 
 
+def build_resnet50_hidden(config):
+    resnet50 = keras.applications.resnet.ResNet50(
+        include_top=False,
+        weights="imagenet",
+        input_shape=configs.input_shape,
+    )
+    model = build_finetune_dense_model(resnet50, config)
+    return model
+
+
 def build_efficientnetb7():
     efficientnet_b7 = tf.keras.applications.efficientnet.EfficientNetB7(
         include_top=False,
@@ -104,13 +113,13 @@ def build_efficientnetb7():
     return model
 
 
-def build_efficientnetb0():
+def build_efficientnetb0(config):
     efficientnet_b0 = keras.applications.efficientnet.EfficientNetB0(
         include_top=False,
         weights="imagenet",
         input_shape=configs.input_shape,
     )
-    model = build_finetune_model(efficientnet_b0)
+    model = build_finetune_model(efficientnet_b0, config)
     return model
 
 

@@ -30,7 +30,7 @@ wandb.init(
     entity=configs.TEAM_NAME,
     config=configs.wandb_config,
     # sync_tensorboard=True,
-    name='freeze_all_blocks' + 'size_196_lr_0.001' + now,
+    name='freeze_3_blocks' + 'aslast_multi_optimizer' + now,
     notes='min_lr=0.00001',
     ####
 )
@@ -62,7 +62,7 @@ X_val = tf.keras.utils.image_dataset_from_directory(
     shuffle=False,
     seed=configs.seed,
 )
-n_steps = math.ceil(len(X_train) / batch_size) * 10  # here we set decay_epochs = 10
+n_steps = math.ceil(len(X_train) / batch_size) * 15  # here we set decay_epochs = 10
 n_steps_per_epoch = math.ceil(len(X_train) / batch_size)
 
 AUTOTUNE = tf.data.AUTOTUNE
@@ -71,7 +71,7 @@ test_dataset = X_val.prefetch(buffer_size=AUTOTUNE)
 
 print('building model')
 # Selecting a model from meodel library
-model = build_resnet50(config)
+model = build_resnet50_hidden(config)
 
 print('Trainable variables in model: ', len(model.trainable_variables))
 
@@ -102,7 +102,7 @@ lr_scheduler = None
 
 if config.lr_scheduler == 'exponential':
     lr_scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
-    initial_learning_rate=0.001, decay_steps=n_steps*10, decay_rate=0.1)
+    initial_learning_rate=0.001, decay_steps=float(n_steps), decay_rate=0.1)
 elif config.lr_scheduler == 'piecewise':
     lr_scheduler = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
     boundaries=[10. * n_steps_per_epoch, 20. * n_steps_per_epoch],
@@ -124,27 +124,27 @@ history = model.fit(X_train,
                     epochs=freeze_epochs,
                     # callbacks=[reduce_lr_callback],
                     # callbacks=[early_callback, wandb_callback],
-                    # callbacks = [wandb_callback],
+                    # callbacks=[wandb_callback],
                     callbacks=[reduce_lr_callback, wandb_callback],
                     )
 
-if config.finetune_ratio * config.freeze_epochs != 0:
+if config.finetune_ratio * config.freeze_epochs != 0 and config.unfreeze != 'None':
 
     optimizers = [
-        tf.keras.optimizers.Adam(learning_rate=lr),
-        tf.kieras.optimizers.Adam(learning_rate=lr/10)
+        tf.keras.optimizers.Adam(learning_rate=0.0001),
+        tf.keras.optimizers.Adam(learning_rate=0.0001)
     ]
     optimizers_and_layers = [(optimizers[0], model.layers[:configs.unfreeze_index]),
                              (optimizers[1], model.layers[configs.unfreeze_index:])]
 
     optimizer = tfa.optimizers.MultiOptimizer(optimizers_and_layers)
 
-    model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
-                  optimizer=optimizer, metrics=["accuracy"])
-
     for layer in model.layers:
         if layer.name in configs.unfreeze_layer_names and '_bn' not in layer.name:
             layer.trainable = True
+
+    model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
+                  optimizer=optimizer, metrics=["accuracy"])
 
     print('Start Finetune the model, Finetune at : {}'.format(config.unfreeze))
     history = model.fit(X_train,
@@ -152,7 +152,7 @@ if config.finetune_ratio * config.freeze_epochs != 0:
                         epochs=int(config.freeze_epochs * config.finetune_ratio),
                         # callbacks=[reduce_lr],
                         # callbacks=[early_callback, wandb_callback],
-                        # callbacks=[reduce_lr, wandb_callback],
+                        # callbacks=[reduce_lr_callback, wandb_callback],
                         callbacks=[wandb_callback],
 
                         )
