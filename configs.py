@@ -17,7 +17,7 @@ TEAM_NAME = 'unicorn_upc_dl'
 TRAIN_FOLDER = './data/train/'
 VAL_FOLDER = './data/val'
 TEST_FOLDER = './data/test/'
-seed = 168
+seed = 10000
 img_height, img_width, n_channels = 320, 320, 3
 
 augment_config = {
@@ -69,7 +69,7 @@ wandb_config = {
     'unfreeze': 'last_stage',  # last_block
     # "epochs": 20,
     "freeze_epochs": 3,
-    'finetune_ratio': 2,
+    'finetune_ratio': 5,
     # "finetune_epochs": int(wandb.finetune_ratio * wandb.freeze_epochs),
     "batch_size": 32,
     'weight_decay': 0,  # 0.001, 0.0001

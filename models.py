@@ -53,7 +53,8 @@ def build_finetune_model(base_model, config):
     inputs = keras.Input(shape=configs.input_shape)
     # out = data_augmentation(inputs)
     out = preprocess_inputs(inputs)
-    out = base_model(out, training=False)
+    # out = base_model(out, training=False)
+    out = base_model(out)
     out = global_average_layer(out)
     out = drop_layer(prediction_layer(out))
 
@@ -74,7 +75,7 @@ def build_finetune_dense_model(base_model, config):
     inputs = keras.Input(shape=configs.input_shape)
     # out = data_augmentation(inputs)
     out = preprocess_inputs(inputs)
-    out = base_model(out, training=False)
+    out = base_model(out)
     out = global_average_layer(out)
     out = drop_layer(hidden_layer(out))
     out = prediction_layer(out)
@@ -113,13 +114,13 @@ def build_efficientnetb7():
     return model
 
 
-def build_efficientnetb0(config):
+def build_efficientnetb0():
     efficientnet_b0 = keras.applications.efficientnet.EfficientNetB0(
         include_top=False,
         weights="imagenet",
         input_shape=configs.input_shape,
     )
-    model = build_finetune_model(efficientnet_b0, config)
+    model = build_finetune_model(efficientnet_b0)
     return model
 
 
@@ -250,7 +251,7 @@ if __name__ == '__main__':
     # print(111)
 
     pretrain_model = tf.keras.applications.resnet.ResNet50(
-        include_top=False,
+        include_top=True,
         weights="imagenet",
         input_shape=configs.input_shape,
     )
@@ -272,6 +273,8 @@ if __name__ == '__main__':
     classification2 = model2(img)
 
     print(1111)
+
+
 
 
 
