@@ -152,8 +152,8 @@ if config.finetune_ratio * config.freeze_epochs != 0 and config.unfreeze != 'Non
         tf.keras.optimizers.Adam(learning_rate=scheduler1),
         tf.keras.optimizers.Adam(learning_rate=scheduler2)
     ]
-    optimizers_and_layers = [(optimizers[0], model.layers[:configs.unfreeze_index]),
-                             (optimizers[1], model.layers[configs.unfreeze_index:])]
+    optimizers_and_layers = [(optimizers[0], model.layers[:4]),
+                             (optimizers[1], model.layers[4:])]
 
     optimizer = tfa.optimizers.MultiOptimizer(optimizers_and_layers)
 
@@ -162,8 +162,8 @@ if config.finetune_ratio * config.freeze_epochs != 0 and config.unfreeze != 'Non
 
     model.layers[3].trainable = True
     for layer in model.layers[3].layers:
-        if layer.name in configs.unfreeze_layer_names and '_bn' not in layer.name:
-            layer.trainable = True
+        if layer.name not in configs.unfreeze_layer_names and '_bn' not in layer.name:
+            layer.trainable = False
 
     print('Trainable variables in model after unfreezing: ', len(model.trainable_variables))
 

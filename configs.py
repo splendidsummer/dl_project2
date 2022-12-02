@@ -12,7 +12,7 @@ mainly including:
 
 BASE_DIR = './data/'
 RAW_DATA_DIR = './data/indoorCVPR_09/Images/'
-PROJECT_NAME = 'Transfer_Learning_MAME_freeze_3_blocks'
+PROJECT_NAME = 'BiT_Transfer_Learning'
 TEAM_NAME = 'unicorn_upc_dl'
 TRAIN_FOLDER = './data/train/'
 VAL_FOLDER = './data/val'
@@ -135,6 +135,7 @@ elif wandb_config['architecture'] == 'efficientnetb7' and wandb_config['unfreeze
 else:
     unfreeze_layer_names = efficientnet_config.last_block_layers
     unfreeze_index = efficientnet_config.last_block_index
+
 
 
 

@@ -10,6 +10,13 @@
             </list>
           </settings>
         </remote-mappings>
+        <remote-mappings server-id="python@sftp://root@region-8.seetacloud.com:25982/root/miniconda3/bin/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/root/autodl-tmp/dl_project2" />
+            </list>
+          </settings>
+        </remote-mappings>
       </list>
     </list>
   </component>
