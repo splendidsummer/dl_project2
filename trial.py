@@ -1,6 +1,10 @@
-import tensorflow as tf
-from tensorflow import keras
+import torch
+import torchvision
+from torch import nn
 
-model = keras.applications.resnet.ResNet50()
+model = torchvision.models.efficientnet_b1()
 
-print(model.summary())
+print(model)
+
+
+

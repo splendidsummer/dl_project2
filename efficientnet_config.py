@@ -1,3 +1,6 @@
+import tensorflow as tf
+import configs
+
 b6_layer_names = ['input_5', 'rescaling_4', 'normalization_2', 'rescaling_5', 'stem_conv_pad', 'stem_conv', 'stem_bn', 'stem_activation',
                   'block1a_dwconv', 'block1a_bn', 'block1a_activation', 'block1a_se_squeeze', 'block1a_se_reshape', 'block1a_se_reduce', 'block1a_se_expand', 'block1a_se_excite', 'block1a_project_conv', 'block1a_project_bn',
                   'block1b_dwconv', 'block1b_bn', 'block1b_activation', 'block1b_se_squeeze', 'block1b_se_reshape', 'block1b_se_reduce', 'block1b_se_expand', 'block1b_se_excite', 'block1b_project_conv', 'block1b_project_bn', 'block1b_drop', 'block1b_add',
@@ -74,7 +77,7 @@ b7_layer_names = ['input_6', 'rescaling_4', 'normalization_2', 'rescaling_5', 's
                   'top_conv', 'top_bn', 'top_activation', 'avg_pool', 'top_dropout', 'predictions']
 
 
-target_layers = ["block1a_project_bn", 'block1d_add', 'block2g_add', 'block3g_add', 'block4j_add', 'block5j_add', 'block6m_add', 'block7d_add']
+# target_layers = ["block1a_project_bn", 'block1d_add', 'block2g_add', 'block3g_add', 'block4j_add', 'block5j_add', 'block6m_add', 'block7d_add']
 
 last_stage_layers = [
     'block7a_expand_conv', 'block7a_expand_bn', 'block7a_expand_activation', 'block7a_dwconv', 'block7a_bn',
@@ -96,5 +99,54 @@ last_block_layers = [
     'block7d_se_excite', 'block7d_project_conv', 'block7d_project_bn', 'block7d_drop', 'block7d_add',
 ]
 
-last_stage_index = 753
-last_block_index = 796
+efficientnetb1 = ['input_1', 'rescaling', 'normalization', 'stem_conv_pad', 'stem_conv', 'stem_bn', 'stem_activation',
+                  'block1a_dwconv', 'block1a_bn', 'block1a_activation', 'block1a_se_squeeze', 'block1a_se_reshape', 'block1a_se_reduce', 'block1a_se_expand', 'block1a_se_excite', 'block1a_project_conv', 'block1a_project_bn',
+                  'block1b_dwconv', 'block1b_bn', 'block1b_activation', 'block1b_se_squeeze', 'block1b_se_reshape', 'block1b_se_reduce', 'block1b_se_expand', 'block1b_se_excite', 'block1b_project_conv', 'block1b_project_bn', 'block1b_drop', 'block1b_add',
+                  'block2a_expand_conv', 'block2a_expand_bn', 'block2a_expand_activation', 'block2a_dwconv_pad', 'block2a_dwconv', 'block2a_bn', 'block2a_activation', 'block2a_se_squeeze', 'block2a_se_reshape', 'block2a_se_reduce', 'block2a_se_expand', 'block2a_se_excite', 'block2a_project_conv', 'block2a_project_bn',
+                  'block2b_expand_conv', 'block2b_expand_bn', 'block2b_expand_activation', 'block2b_dwconv', 'block2b_bn', 'block2b_activation', 'block2b_se_squeeze', 'block2b_se_reshape', 'block2b_se_reduce', 'block2b_se_expand', 'block2b_se_excite', 'block2b_project_conv', 'block2b_project_bn', 'block2b_drop', 'block2b_add',
+                  'block2c_expand_conv', 'block2c_expand_bn', 'block2c_expand_activation', 'block2c_dwconv', 'block2c_bn', 'block2c_activation', 'block2c_se_squeeze', 'block2c_se_reshape', 'block2c_se_reduce', 'block2c_se_expand', 'block2c_se_excite', 'block2c_project_conv', 'block2c_project_bn', 'block2c_drop', 'block2c_add',
+                  'block3a_expand_conv', 'block3a_expand_bn', 'block3a_expand_activation', 'block3a_dwconv_pad', 'block3a_dwconv', 'block3a_bn', 'block3a_activation', 'block3a_se_squeeze', 'block3a_se_reshape', 'block3a_se_reduce', 'block3a_se_expand', 'block3a_se_excite', 'block3a_project_conv', 'block3a_project_bn',
+                  'block3b_expand_conv', 'block3b_expand_bn', 'block3b_expand_activation', 'block3b_dwconv', 'block3b_bn', 'block3b_activation', 'block3b_se_squeeze', 'block3b_se_reshape', 'block3b_se_reduce', 'block3b_se_expand', 'block3b_se_excite', 'block3b_project_conv', 'block3b_project_bn', 'block3b_drop', 'block3b_add',
+                  'block3c_expand_conv', 'block3c_expand_bn', 'block3c_expand_activation', 'block3c_dwconv', 'block3c_bn', 'block3c_activation', 'block3c_se_squeeze', 'block3c_se_reshape', 'block3c_se_reduce', 'block3c_se_expand', 'block3c_se_excite', 'block3c_project_conv', 'block3c_project_bn', 'block3c_drop', 'block3c_add',
+                  'block4a_expand_conv', 'block4a_expand_bn', 'block4a_expand_activation', 'block4a_dwconv_pad', 'block4a_dwconv', 'block4a_bn', 'block4a_activation', 'block4a_se_squeeze', 'block4a_se_reshape', 'block4a_se_reduce', 'block4a_se_expand', 'block4a_se_excite', 'block4a_project_conv', 'block4a_project_bn',
+                  'block4b_expand_conv', 'block4b_expand_bn', 'block4b_expand_activation', 'block4b_dwconv', 'block4b_bn', 'block4b_activation', 'block4b_se_squeeze', 'block4b_se_reshape', 'block4b_se_reduce', 'block4b_se_expand', 'block4b_se_excite', 'block4b_project_conv', 'block4b_project_bn', 'block4b_drop', 'block4b_add',
+                  'block4c_expand_conv', 'block4c_expand_bn', 'block4c_expand_activation', 'block4c_dwconv', 'block4c_bn', 'block4c_activation', 'block4c_se_squeeze', 'block4c_se_reshape', 'block4c_se_reduce', 'block4c_se_expand', 'block4c_se_excite', 'block4c_project_conv', 'block4c_project_bn', 'block4c_drop', 'block4c_add',
+                  'block4d_expand_conv', 'block4d_expand_bn', 'block4d_expand_activation', 'block4d_dwconv', 'block4d_bn', 'block4d_activation', 'block4d_se_squeeze', 'block4d_se_reshape', 'block4d_se_reduce', 'block4d_se_expand', 'block4d_se_excite', 'block4d_project_conv', 'block4d_project_bn', 'block4d_drop', 'block4d_add',
+                  'block5a_expand_conv', 'block5a_expand_bn', 'block5a_expand_activation', 'block5a_dwconv', 'block5a_bn', 'block5a_activation', 'block5a_se_squeeze', 'block5a_se_reshape', 'block5a_se_reduce', 'block5a_se_expand', 'block5a_se_excite', 'block5a_project_conv', 'block5a_project_bn',
+                  'block5b_expand_conv', 'block5b_expand_bn', 'block5b_expand_activation', 'block5b_dwconv', 'block5b_bn', 'block5b_activation', 'block5b_se_squeeze', 'block5b_se_reshape', 'block5b_se_reduce', 'block5b_se_expand', 'block5b_se_excite', 'block5b_project_conv', 'block5b_project_bn', 'block5b_drop', 'block5b_add',
+                  'block5c_expand_conv', 'block5c_expand_bn', 'block5c_expand_activation', 'block5c_dwconv', 'block5c_bn', 'block5c_activation', 'block5c_se_squeeze', 'block5c_se_reshape', 'block5c_se_reduce', 'block5c_se_expand', 'block5c_se_excite', 'block5c_project_conv', 'block5c_project_bn', 'block5c_drop', 'block5c_add',
+                  'block5d_expand_conv', 'block5d_expand_bn', 'block5d_expand_activation', 'block5d_dwconv', 'block5d_bn', 'block5d_activation', 'block5d_se_squeeze', 'block5d_se_reshape', 'block5d_se_reduce', 'block5d_se_expand', 'block5d_se_excite', 'block5d_project_conv', 'block5d_project_bn', 'block5d_drop', 'block5d_add',
+                  'block6a_expand_conv', 'block6a_expand_bn', 'block6a_expand_activation', 'block6a_dwconv_pad', 'block6a_dwconv', 'block6a_bn', 'block6a_activation', 'block6a_se_squeeze', 'block6a_se_reshape', 'block6a_se_reduce', 'block6a_se_expand', 'block6a_se_excite', 'block6a_project_conv', 'block6a_project_bn',
+                  'block6b_expand_conv', 'block6b_expand_bn', 'block6b_expand_activation', 'block6b_dwconv', 'block6b_bn', 'block6b_activation', 'block6b_se_squeeze', 'block6b_se_reshape', 'block6b_se_reduce', 'block6b_se_expand', 'block6b_se_excite', 'block6b_project_conv', 'block6b_project_bn', 'block6b_drop', 'block6b_add',
+                  'block6c_expand_conv', 'block6c_expand_bn', 'block6c_expand_activation', 'block6c_dwconv', 'block6c_bn', 'block6c_activation', 'block6c_se_squeeze', 'block6c_se_reshape', 'block6c_se_reduce', 'block6c_se_expand', 'block6c_se_excite', 'block6c_project_conv', 'block6c_project_bn', 'block6c_drop', 'block6c_add',
+                  'block6d_expand_conv', 'block6d_expand_bn', 'block6d_expand_activation', 'block6d_dwconv', 'block6d_bn', 'block6d_activation', 'block6d_se_squeeze', 'block6d_se_reshape', 'block6d_se_reduce', 'block6d_se_expand', 'block6d_se_excite', 'block6d_project_conv', 'block6d_project_bn', 'block6d_drop', 'block6d_add',
+                  'block6e_expand_conv', 'block6e_expand_bn', 'block6e_expand_activation', 'block6e_dwconv', 'block6e_bn', 'block6e_activation', 'block6e_se_squeeze', 'block6e_se_reshape', 'block6e_se_reduce', 'block6e_se_expand', 'block6e_se_excite', 'block6e_project_conv', 'block6e_project_bn', 'block6e_drop', 'block6e_add',
+                  'block7a_expand_conv', 'block7a_expand_bn', 'block7a_expand_activation', 'block7a_dwconv', 'block7a_bn', 'block7a_activation', 'block7a_se_squeeze', 'block7a_se_reshape', 'block7a_se_reduce', 'block7a_se_expand', 'block7a_se_excite', 'block7a_project_conv', 'block7a_project_bn',
+                  'block7b_expand_conv', 'block7b_expand_bn', 'block7b_expand_activation', 'block7b_dwconv', 'block7b_bn', 'block7b_activation', 'block7b_se_squeeze', 'block7b_se_reshape', 'block7b_se_reduce', 'block7b_se_expand', 'block7b_se_excite', 'block7b_project_conv', 'block7b_project_bn', 'block7b_drop', 'block7b_add',
+                  'top_conv', 'top_bn', 'top_activation']
+
+target_layers = ['block1b_add', 'block2c_add', 'block3c_add', 'block4d_add', 'block5d_add', 'block6e_add', 'block7b_add']
+
+# [28, 72, 116, 175, 233, 307, 335]
+first_stage_index = 28 + 1
+second_stage_index = 72 + 1
+third_stage_index = 116 + 1
+fouth_stage_index = 175 + 1
+fifth_stage_index = 233 + 1
+sixth_stage_index = 307 + 1
+last_stage_index = 335 + 1
+
+
+if __name__ == '__main__':
+
+    efficientnet_b1 = tf.keras.applications.efficientnet.EfficientNetB1(
+        include_top=False,
+        weights=None,
+        input_shape=configs.input_shape,
+    )
+
+    layer_names = [layer.name for layer in efficientnet_b1.layers]
+    layer_indices = [layer_names.index(target_layer) for target_layer in target_layers]
+    print(layer_indices)
+
+    print(111)

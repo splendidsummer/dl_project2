@@ -162,7 +162,11 @@ if config.finetune_ratio * config.freeze_epochs != 0 and config.unfreeze != 'Non
 
     model.layers[3].trainable = True
     for layer in model.layers[3].layers:
-        if layer.name not in configs.unfreeze_layer_names and '_bn' not in layer.name:
+        if layer.name not in configs.unfreeze_layer_names:
+            layer.trainable = False
+
+    for layer in model.layers[3].layers:
+        if layer.name in configs.unfreeze_layer_names and '_bn' in layer.name:
             layer.trainable = False
 
     print('Trainable variables in model after unfreezing: ', len(model.trainable_variables))
