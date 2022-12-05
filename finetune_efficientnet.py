@@ -129,14 +129,14 @@ model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=Fal
 print('Start Training Classifier!')
 t0 = time.time()
 
-# history = model.fit(X_train,
-#                     validation_data=X_val,
-#                     epochs=freeze_epochs,  # 3
-#                     # callbacks=[reduce_lr_callback],
-#                     # callbacks=[early_callback, wandb_callback],
-#                     # callbacks=[wandb_callback],
-#                     callbacks=[reduce_lr_callback, wandb_callback],
-#                     )
+history = model.fit(X_train,
+                    validation_data=X_val,
+                    epochs=freeze_epochs,  # 3
+                    # callbacks=[reduce_lr_callback],
+                    # callbacks=[early_callback, wandb_callback],
+                    # callbacks=[wandb_callback],
+                    callbacks=[reduce_lr_callback, wandb_callback],
+                    )
 
 scheduler1 = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
     boundaries=[5. * n_steps_per_epoch, 10. * n_steps_per_epoch],
@@ -164,9 +164,9 @@ if config.finetune_ratio * config.freeze_epochs != 0 and config.unfreeze != 'Non
     for layer in model.layers[3].layers[: configs.unfreeze_index]:
         layer.trainable = False
 
-    for layer in model.layers[3].layers[configs.unfreeze_index:]:
-        if '_bn' in layer.name:
-            layer.trainable = False
+    # for layer in model.layers[3].layers[configs.unfreeze_index:]:
+    #     if '_bn' in layer.name:
+    #         layer.trainable = False
 
     print('Trainable variables in model after unfreezing: ', len(model.trainable_variables))
 
