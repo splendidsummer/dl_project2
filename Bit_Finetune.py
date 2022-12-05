@@ -127,7 +127,7 @@ history = model.fit(X_train,
                     callbacks=[reduce_lr_callback, wandb_callback],
                     )
 
-print(model.trainable_variables)
+# print(model.trainable_variables)
 
 
 

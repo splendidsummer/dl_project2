@@ -12,7 +12,7 @@ mainly including:
 
 BASE_DIR = './data/'
 RAW_DATA_DIR = './data/indoorCVPR_09/Images/'
-PROJECT_NAME = 'BiT_Transfer_Learning'
+PROJECT_NAME = 'Finetune_Unfreeze_Efficientnet'
 TEAM_NAME = 'unicorn_upc_dl'
 TRAIN_FOLDER = './data/train/'
 VAL_FOLDER = './data/val'
@@ -31,6 +31,18 @@ augment_config = {
 }
 
 input_shape = (img_height, img_width, n_channels)
+
+
+class ValueSettingError(Exception):
+    def __init__(self, ErrorInfo):
+        super().__init__(self)
+        self.errorinfo = ErrorInfo
+
+    def __str__(self):  # using str method to print error type
+        return self.errorinfo
+
+
+value_error = ValueSettingError('Setting architecture or freeze stage wrong!!!')
 
 data_classes = ['Oil on canvas', 'Graphite', 'Glass', 'Limestone', 'Bronze',
                 'Ceramic', 'Polychromed wood', 'Faience', 'Wood', 'Gold', 'Marble',
@@ -65,10 +77,10 @@ num_classes = len(data_classes)
 
 wandb_config = {
     # "project_name": "CRB",
-    "architecture": 'resnet50',
+    "architecture": 'efficientnetb1',
     'unfreeze': 'last_stage',  # last_block
     # "epochs": 20,
-    "freeze_epochs": 3,
+    "freeze_epochs": 1,
     'finetune_ratio': 5,
     # "finetune_epochs": int(wandb.finetune_ratio * wandb.freeze_epochs),
     "batch_size": 32,
@@ -87,7 +99,7 @@ wandb_config = {
     # "normalization": True,
     # "early_stopping": True,
     # "augment": False,
-    "num_hidden": 512,
+    "num_hidden": 1024,
     "augmentation": None,  # "random_crop", "random_ratation"
     "lr_scheduler": "None",
     }
@@ -128,18 +140,32 @@ elif wandb_config['architecture'] == 'resnet50' and wandb_config['unfreeze'] == 
 elif wandb_config['architecture'] == 'resnet50' and wandb_config['unfreeze'] == 'None':
     unfreeze_index = resnet_config.last_index
 
-elif wandb_config['architecture'] == 'efficientnetb7' and wandb_config['unfreeze'] == 'last_stage':
-    unfreeze_layer_names = efficientnet_config.last_stage_layers
+elif wandb_config['architecture'] == 'efficientnetb1' and wandb_config['unfreeze'] == 'first_stage':
+    unfreeze_index = efficientnet_config.first_stage_index
+
+elif wandb_config['architecture'] == 'efficientnetb1' and wandb_config['unfreeze'] == 'second_stage':
+    unfreeze_index = efficientnet_config.second_stage_index
+
+elif wandb_config['architecture'] == 'efficientnetb1' and wandb_config['unfreeze'] == 'third_stage':
+    unfreeze_index = efficientnet_config.third_stage_index
+
+elif wandb_config['architecture'] == 'efficientnetb1' and wandb_config['unfreeze'] == 'fouth_stage':
+    unfreeze_index = efficientnet_config.fouth_stage_index
+
+elif wandb_config['architecture'] == 'efficientnetb1' and wandb_config['unfreeze'] == 'fifth_stage':
+    unfreeze_index = efficientnet_config.fifth_stage_index
+
+elif wandb_config['architecture'] == 'efficientnetb1' and wandb_config['unfreeze'] == 'sixth_stage':
+    unfreeze_index = efficientnet_config.sixth_stage_index
+
+elif wandb_config['architecture'] == 'efficientnetb1' and wandb_config['unfreeze'] == 'last_stage':
     unfreeze_index = efficientnet_config.last_stage_index
 
 else:
-    unfreeze_layer_names = efficientnet_config.last_block_layers
-    unfreeze_index = efficientnet_config.last_block_index
-
-
-
-
-
-
+    raise value_error
+#
+# else:
+#     unfreeze_layer_names = efficientnet_config.last_block_layers
+#     unfreeze_index = efficientnet_config.last_block_index
 
 

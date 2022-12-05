@@ -24,13 +24,13 @@ wandb_dir = '/root/autodl-tmp/dl_project2/wandb_logs' if is_gpu else \
 
 # initialize wandb logging to your project
 wandb.init(
-    job_type='FineTune_Efficientnet',
+    job_type='FineTune_Resnet',
     project=configs.PROJECT_NAME,
     dir=wandb_dir,
     entity=configs.TEAM_NAME,
     config=configs.wandb_config,
     # sync_tensorboard=True,
-    name='unfreeze_' + 'efficientnet_' + 'last_stage_' + now,
+    name='freeze_3_blocks' + '_multi_optimizer' + now,
     notes='min_lr=0.00001',
     ####
 )
@@ -71,7 +71,7 @@ test_dataset = X_val.prefetch(buffer_size=AUTOTUNE)
 
 print('building model')
 # Selecting a model from meodel library
-model = build_efficientnetb1_hidden(config)
+model = build_resnet50_hidden(config)
 
 print('Trainable variables in model: ', len(model.trainable_variables))
 
@@ -84,7 +84,7 @@ early_callback = EarlyStopping(monitor='val_loss',
 
 wandb_callback = WandbCallback(
                                 save_model=False,
-                                save_weighsts_only=True,
+                                save_weights_only=True,
                                 log_weights=True,
                                 # log_gradients=True,
                               )
@@ -161,8 +161,8 @@ if config.finetune_ratio * config.freeze_epochs != 0 and config.unfreeze != 'Non
     print('Using multiple optimizer'.format(config.unfreeze))
 
     model.layers[3].trainable = True
-    for layer in model.layers[3].layers[: configs.unfreeze_index]:
-        if '_bn' not in layer.name:
+    for layer in model.layers[3].layers:
+        if layer.name in configs.unfreeze_layer_names and '_bn' not in layer.name:
             layer.trainable = True
 
     print('Trainable variables in model after unfreezing: ', len(model.trainable_variables))
