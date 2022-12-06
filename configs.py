@@ -78,9 +78,9 @@ num_classes = len(data_classes)
 wandb_config = {
     # "project_name": "CRB",
     "architecture": 'efficientnetb1',
-    'unfreeze': 'last_stage',  # last_block
+    'unfreeze': 'sixth_stage',  # last_block
     # "epochs": 20,
-    "freeze_epochs": 1,
+    "freeze_epochs": 3,
     'finetune_ratio': 5,
     # "finetune_epochs": int(wandb.finetune_ratio * wandb.freeze_epochs),
     "batch_size": 32,

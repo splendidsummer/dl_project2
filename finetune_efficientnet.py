@@ -1,19 +1,12 @@
-import tensorflow as tf
-from models import *
 import os, sys, time, tqdm, datetime
 import math
-import keras
-from keras import layers, optimizers
-from keras.optimizers import SGD, Adam
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
-import wandb
 from wandb.keras import WandbCallback
 from models import *
-import configs
 from utils import *
 import tensorflow_addons as tfa
 
-set_seed(configs.seed)
+# set_seed(configs.seed)
 now = datetime.datetime.now()
 now = now.strftime('%Y%m%d%H%M%S')
 model_path = '/root/autodl-tmp/dl_project2/saved_model_' + now
@@ -30,7 +23,7 @@ wandb.init(
     entity=configs.TEAM_NAME,
     config=configs.wandb_config,
     # sync_tensorboard=True,
-    name='unfreeze_' + 'efficientnet_' + 'last_stage_' + now,
+    name='unfreeze_' + 'efficientnet_' + 'last_2stage_' + now,
     notes='min_lr=0.00001',
     ####
 )
@@ -101,13 +94,6 @@ model_cp = ModelCheckpoint(
 
 reduce_lr_callback = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, min_lr=0.00001)
 
-"""
-需要edit不同的learning rate 
-"""
-# There are multiple choice for learning rate scheduler
-# Including ReduceLROnPlateau,
-# reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.00001)
-
 lr_scheduler = None
 
 if config.lr_scheduler == 'exponential':
@@ -132,9 +118,6 @@ t0 = time.time()
 history = model.fit(X_train,
                     validation_data=X_val,
                     epochs=freeze_epochs,  # 3
-                    # callbacks=[reduce_lr_callback],
-                    # callbacks=[early_callback, wandb_callback],
-                    # callbacks=[wandb_callback],
                     callbacks=[reduce_lr_callback, wandb_callback],
                     )
 
@@ -148,17 +131,17 @@ scheduler2 = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
 
 if config.finetune_ratio * config.freeze_epochs != 0 and config.unfreeze != 'None':
 
-    optimizers = [
-        tf.keras.optimizers.Adam(learning_rate=scheduler1),
-        tf.keras.optimizers.Adam(learning_rate=scheduler2)
-    ]
-    optimizers_and_layers = [(optimizers[0], model.layers[: 4]),
-                             (optimizers[1], model.layers[4:])]
-
-    optimizer = tfa.optimizers.MultiOptimizer(optimizers_and_layers)
-
-    print('unfreeze the backbone network at {}'.format(config.unfreeze))
-    print('Using multiple optimizer'.format(config.unfreeze))
+    # optimizers = [
+    #     tf.keras.optimizers.Adam(learning_rate=scheduler1),
+    #     tf.keras.optimizers.Adam(learning_rate=scheduler2)
+    # ]
+    # optimizers_and_layers = [(optimizers[0], model.layers[: 4]),
+    #                          (optimizers[1], model.layers[4:])]
+    #
+    # optimizer = tfa.optimizers.MultiOptimizer(optimizers_and_layers)
+    #
+    # print('unfreeze the backbone network at {}'.format(config.unfreeze))
+    # print('Using multiple optimizer'.format(config.unfreeze))
 
     model.layers[3].trainable = True
     for layer in model.layers[3].layers[: configs.unfreeze_index]:
@@ -177,10 +160,7 @@ if config.finetune_ratio * config.freeze_epochs != 0 and config.unfreeze != 'Non
     history = model.fit(X_train,
                         validation_data=X_val,
                         epochs=int(config.freeze_epochs * config.finetune_ratio),
-                        # callbacks=[reduce_lr],
-                        # callbacks=[early_callback, wandb_callback],
-                        # callbacks=[reduce_lr_callback, wandb_callback],
-                        callbacks=[wandb_callback, model_cp],
+                        callbacks=[wandb_callback, model_cp, reduce_lr_callback],
                         )
 
 print('Model trained in {:.1f}min'.format((time.time() - t0) / 60))

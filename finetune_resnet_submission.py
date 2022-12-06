@@ -174,9 +174,6 @@ if config.finetune_ratio * config.freeze_epochs != 0 and config.unfreeze != 'Non
     history = model.fit(X_train,
                         validation_data=X_val,
                         epochs=int(config.freeze_epochs * config.finetune_ratio),
-                        # callbacks=[reduce_lr],
-                        # callbacks=[early_callback, wandb_callback],
-                        # callbacks=[reduce_lr_callback, wandb_callback],
                         callbacks=[wandb_callback, model_cp],
                         )
 
