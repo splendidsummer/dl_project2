@@ -12,7 +12,7 @@ mainly including:
 
 BASE_DIR = './data/'
 RAW_DATA_DIR = './data/indoorCVPR_09/Images/'
-PROJECT_NAME = 'Finetune_Unfreeze_Efficientnet'
+PROJECT_NAME = 'Feature_Extraciton_Resnet'
 TEAM_NAME = 'unicorn_upc_dl'
 TRAIN_FOLDER = './data/train/'
 VAL_FOLDER = './data/val'
@@ -52,35 +52,14 @@ data_classes = ['Oil on canvas', 'Graphite', 'Glass', 'Limestone', 'Bronze',
                 'Wood engraving', 'Hand-colored engraving', 'Clay',
                 'Hand-colored etching', 'Albumen photograph']
 
-
-resnet_layer_names = resnet_config.layer_names
-resnet_target_layers = resnet_config.target_layers
-
-efficientnetb7_layer_names = efficientnet_config.b7_layer_names
-efficientnetb7_target_layer = efficientnet_config.target_layers
-
-# efficientnetb6_layer_names = efficientnet_config.b6_layer_names
-# efficientnetb6_target_layers =
-
-# Should we set layernorm params to be trainable
-# unfreeze_layer_names = ['encoderblock_11']  # ViT-B16
-unfreeze_layer_names = ['encoderblock_11', 'encoderblock_10']
-# unfreeze_layer_names = ['encoderblock_23']
-# unfreeze_layer_names = ['encoderblock_22', 'encoderblock_23']
-# unfreeze_layer_names = ['encoderblock_21', 'encoderblock_22' ,'encoderblock_23']
-# unfreeze_layer_names = ['encoderblock_20', 'encoderblock_21', 'encoderblock_22' ,'encoderblock_23']
-
-resnet_extracted_layer_names = []
-efficient_extracted_layer_names = []
-
 num_classes = len(data_classes)
 
 wandb_config = {
     # "project_name": "CRB",
-    "architecture": 'efficientnetb1',
-    'unfreeze': 'sixth_stage',  # last_block
+    "architecture": 'resnet50',
+    'unfreeze': 'None',  # last_block
     # "epochs": 20,
-    "freeze_epochs": 3,
+    "freeze_epochs": 15,
     'finetune_ratio': 5,
     # "finetune_epochs": int(wandb.finetune_ratio * wandb.freeze_epochs),
     "batch_size": 32,
@@ -99,7 +78,7 @@ wandb_config = {
     # "normalization": True,
     # "early_stopping": True,
     # "augment": False,
-    "num_hidden": 1024,
+    "num_hidden": 512,
     "augmentation": None,  # "random_crop", "random_ratation"
     "lr_scheduler": "None",
     }
@@ -160,10 +139,10 @@ elif wandb_config['architecture'] == 'efficientnetb1' and wandb_config['unfreeze
 
 elif wandb_config['architecture'] == 'efficientnetb1' and wandb_config['unfreeze'] == 'last_stage':
     unfreeze_index = efficientnet_config.last_stage_index
-
-else:
-    raise value_error
 #
+# else:
+#     raise value_error
+# #
 # else:
 #     unfreeze_layer_names = efficientnet_config.last_block_layers
 #     unfreeze_index = efficientnet_config.last_block_index

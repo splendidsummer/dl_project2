@@ -37,19 +37,17 @@ wandb.init(
 
 config = wandb.config
 batch_size = config.batch_size
-first_stage_epochs = config.first_stage_epochs
-finetune_epochs = config.finetune_epochs
+freeze_epochs = config.freeze_epochs
+finetune_epochs = config.freeze_epochs * config.finetune_ratio
 lr = config.learning_rate
 weight_decay = config.weight_decay
-early_stopping = config.early_stopping
 activation = config.activation
-augment = config.augment
 
 print('Build Training dataset')
 X_train = tf.keras.utils.image_dataset_from_directory(
     configs.TRAIN_FOLDER,
     batch_size=config.batch_size,  # batch_size
-    # image_size=(img_height, img_width), # resize
+    image_size=(configs.img_height, configs.img_width),  # resize
     shuffle=True,
     seed=configs.seed
 )
@@ -58,7 +56,7 @@ print('Build Validation dataset')
 X_val = tf.keras.utils.image_dataset_from_directory(
     configs.VAL_FOLDER,
     batch_size=config.batch_size,  # batch_size
-    # image_size=(img_height, img_width), # resize
+    image_size=(configs.img_height, configs.img_width),  # resize
     shuffle=False,
     seed=configs.seed,
 )
@@ -68,26 +66,11 @@ train_dataset = X_train.prefetch(buffer_size=AUTOTUNE)
 test_dataset = X_val.prefetch(buffer_size=AUTOTUNE)
 
 print('building model')
-# Selecting a model from meodel library
-base_model = tf.keras.applications.resnet50.ResNet50(
-    include_top=False,
-    weights='imagenet',
-    input_shape=configs.input_shape,
-)
-
-target_layers = efficientnet_config.target_layers
-model = build_extract_finetune(base_model, target_layers)
-model = build_resnet_extract_finetune()
-
-
+model = build_resnet50_extract_finetune()
 
 print('Trainable variables in model: ', len(model.trainable_variables))
 
-optimizer = Adam(  # do we need to change the epsilon??
-        lr=lr,
-        epsilon=config.epsilon,
-        amsgrad=config.amsgrad
-    )
+optimizer = Adam(lr=lr,  epsilon=config.epsilon, amsgrad=config.amsgrad)
 
 # Use early stopping
 early_callback = EarlyStopping(monitor='val_loss',
@@ -107,8 +90,8 @@ cp_callback = ModelCheckpoint(filepath='./checkpoints/',
                               verbose=1)
 
 
-# reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.00001)
-reduce_lr = ReduceLROnPlateau(min_lr=0.00001)
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.00001)
+# reduce_lr = ReduceLROnPlateau(min_lr=0.00001)
 
 model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
               optimizer=optimizer, metrics=["accuracy"])
@@ -116,39 +99,39 @@ model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=Fal
 print('Start Training Classifier!')
 t0 = time.time()
 
-history = model.fit(X_train,
+history = model.fit(
+                    X_train,
                     validation_data=X_val,
-                    epochs=first_stage_epochs,
-                    callbacks=[reduce_lr],
-                    # callbacks=[early_callback, wandb_callback],
-                    # callbacks=[reduce_lr, wandb_callback],
+                    epochs=freeze_epochs,
+                    callbacks=[reduce_lr, wandb_callback],
                     )
-
-optimizers = [
-    tf.keras.optimizers.Adam(learning_rate=lr),
-    tf.keras.optimizers.Adam(learning_rate=lr/10)
-]
-optimizers_and_layers = [(optimizers[0], model.layers[:configs.unfreeze_index]),
-                         (optimizers[1], model.layers[configs.unfreeze_index:])]
-
-optimizer = tfa.optimizers.MultiOptimizer(optimizers_and_layers)
-
-model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
-              optimizer=optimizer, metrics=["accuracy"])
-
-for layer in model.layers:
-    if layer.name in configs.unfreeze_layer_names and '_bn' not in layer.name:
-        layer.trainable = True
-
-print('Start Finetune the model, Finetune at : {}'.format(config.unfreeze))
-history = model.fit(X_train,
-                    validation_data=X_val,
-                    epochs=finetune_epochs,
-                    # callbacks=[reduce_lr],
-                    # callbacks=[early_callback, wandb_callback],
-                    # callbacks=[reduce_lr, wandb_callback],
-                    callbacks=[wandb_callback, cp_callback],
-                    )
+#
+# optimizers = [
+#     tf.keras.optimizers.Adam(learning_rate=lr),
+#     tf.keras.optimizers.Adam(learning_rate=lr/10)
+# ]
+#
+# optimizers_and_layers = [(optimizers[0], model.layers[:configs.unfreeze_index]),
+#                          (optimizers[1], model.layers[configs.unfreeze_index:])]
+#
+# optimizer = tfa.optimizers.MultiOptimizer(optimizers_and_layers)
+#
+# model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
+#               optimizer=optimizer, metrics=["accuracy"])
+#
+# for layer in model.layers:
+#     if layer.name in configs.unfreeze_layer_names and '_bn' not in layer.name:
+#         layer.trainable = True
+#
+# print('Start Finetune the model, Finetune at : {}'.format(config.unfreeze))
+# history = model.fit(X_train,
+#                     validation_data=X_val,
+#                     epochs=finetune_epochs,
+#                     # callbacks=[reduce_lr],
+#                     # callbacks=[early_callback, wandb_callback],
+#                     # callbacks=[reduce_lr, wandb_callback],
+#                     callbacks=[wandb_callback, cp_callback],
+#                     )
 
 print('Model trained in {:.1f}min'.format((time.time() - t0) / 60))
 print('now is:  ' + now)

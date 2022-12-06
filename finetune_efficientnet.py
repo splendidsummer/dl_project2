@@ -23,7 +23,7 @@ wandb.init(
     entity=configs.TEAM_NAME,
     config=configs.wandb_config,
     # sync_tensorboard=True,
-    name='unfreeze_' + 'efficientnet_' + 'last_2stage_' + now,
+    name='unfreeze_' + 'efficientnet_' + 'last_6stage_' + now,
     notes='min_lr=0.00001',
     ####
 )

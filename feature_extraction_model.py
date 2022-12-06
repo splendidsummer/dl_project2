@@ -86,6 +86,7 @@ def build_extract_finetune(base_model, target_layer_names, backbone_type='resnet
     outs = preprocess_inputs(inputs)
     outs = feature_extractor(outs)
     global_average_layer = GlobalAveragePooling2D()
+    dropout_layer = Dropout(0.2)
 
     outputs = None
     for output in outs:
@@ -96,7 +97,7 @@ def build_extract_finetune(base_model, target_layer_names, backbone_type='resnet
             outputs = output
 
     prediction_layer = Dense(configs.num_classes, activation='softmax')
-    out = prediction_layer(outputs)
+    out = prediction_layer(dropout_layer(outputs))
 
     model = Model(inputs, out)
     return model
@@ -108,12 +109,11 @@ def build_resnet50_extract_finetune():
         weights="imagenet",
         input_shape=configs.input_shape,
     )
-    weight_file = '/root/autodl-tmp/dl_project2/weights/'
+    weight_file = '/root/autodl-tmp/dl_project2/weights/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
     base_model.load_weights(weight_file)
 
-    layer_names = resnet_config.target_layers
-
-    model = build_extract_finetune(base_model, layer_names, backbone_type='resnet')
+    target_layers = resnet_config.target_layers
+    model = build_extract_finetune(base_model, target_layers, backbone_type='resnet')
     return model
 
 
